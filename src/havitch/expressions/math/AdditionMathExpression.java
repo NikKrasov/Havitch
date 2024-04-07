@@ -5,7 +5,7 @@ import havitch.expressions.AbstractExpression;
 public class AdditionMathExpression extends AbstractMathExpression {
 
 
-    public AdditionMathExpression(AbstractExpression firstOperand, AbstractExpression secondOperand) {
+    public AdditionMathExpression(AbstractExpression<Integer> firstOperand, AbstractExpression<Integer> secondOperand) {
         super(firstOperand, secondOperand);
     }
 
@@ -14,7 +14,7 @@ public class AdditionMathExpression extends AbstractMathExpression {
         return "add";
     }
 
-    @Override    public int execute() {
+    @Override    public Integer execute() {
         return getFirstOperand().execute()+getSecondOperand().execute();
     }
 }
