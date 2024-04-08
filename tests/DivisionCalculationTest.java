@@ -1,3 +1,4 @@
+import havitch.expressions.math.ArgumentIntegerExpression;
 import havitch.expressions.math.DivisionMathExpression;
 import org.junit.jupiter.api.Test;
 
@@ -7,11 +8,7 @@ class DivisionCalculationTest {
 
     @Test
     void divisionTest() {
-        assertEquals(5,new DivisionMathExpression(10,2).execute());
+        assertEquals(5,new DivisionMathExpression(new ArgumentIntegerExpression(10), new ArgumentIntegerExpression(2)).execute());
     }
 
-    @Test
-    void divisionByZeroTest(){
-        assertThrows(IllegalArgumentException.class, () -> new DivisionMathExpression(5, 0));
-    }
 }

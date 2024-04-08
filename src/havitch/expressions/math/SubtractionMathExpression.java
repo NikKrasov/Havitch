@@ -3,11 +3,11 @@ package havitch.expressions.math;
 import havitch.expressions.AbstractExpression;
 
 public class SubtractionMathExpression extends AbstractMathExpression {
-    public SubtractionMathExpression(AbstractExpression firstOperand, AbstractExpression secondOperand) {
+    public SubtractionMathExpression(AbstractExpression<Integer> firstOperand, AbstractExpression<Integer> secondOperand) {
         super(firstOperand, secondOperand);
     }
 
-    public int execute(){
+    public Integer execute(){
         return getFirstOperand().execute()-getSecondOperand().execute();
     }
 

@@ -3,12 +3,12 @@ package havitch.expressions.math;
 import havitch.expressions.AbstractExpression;
 
 public class DivisionMathExpression extends AbstractMathExpression {
-    public DivisionMathExpression(AbstractExpression firstOperand, AbstractExpression secondOperand) {
+    public DivisionMathExpression(AbstractExpression<Integer> firstOperand, AbstractExpression<Integer> secondOperand) {
         super(firstOperand, secondOperand);
     }
 
     @Override
-    public int execute() {
+    public Integer execute() {
         return getFirstOperand().execute()/getSecondOperand().execute();
     }
 

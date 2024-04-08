@@ -2,7 +2,7 @@ package havitch;
 
 import havitch.expressions.AbstractExpression;
 import havitch.expressions.math.AbstractMathExpression;
-import havitch.expressions.ArgumentExpression;
+import havitch.expressions.math.ArgumentIntegerExpression;
 import havitch.expressions.math.factories.*;
 
 import java.util.ArrayList;
@@ -24,46 +24,85 @@ public class MathExpressionParser {
     private final List<String> multiplicationOperatorsList = Arrays.asList("*", "/");
 
 
-    public AbstractExpression parse(String stringMathExpression) {
+    public AbstractExpression<Integer> parse(String stringMathExpression) {
         ParsedTokens parsedTokens = parseTokens(stringMathExpression);
         // figure the sequence of operators.
         // First multiplication or division
         // then addition or subtraction
-        return createMathExpression(parsedTokens);
+        return buildMathExpressionThree(parsedTokens);
     }
 
-    private AbstractExpression createMathExpression(ParsedTokens parsedTokens) {
-        return createMathExpression(parsedTokens, null, 0);
+    private AbstractExpression<Integer> buildMathExpressionThree(ParsedTokens parsedTokens) {
+        return buildMathExpressionThree(parsedTokens, null, 0);
     }
 
     private boolean isExpressionOperator(String operator) {
         return expressionOperatorsList.contains(operator);
     }
 
-    private AbstractExpression createMathExpression(ParsedTokens parsedTokens, AbstractExpression parentExpression, int operatorInd) {
+    private AbstractExpression<Integer> buildMathExpressionThree(ParsedTokens parsedTokens, AbstractExpression<Integer> parentExpression, int operatorInd) {
 
 //        AbstractMathExpression mathExpression = parentExpression;
         var operator = parsedTokens.operatorTokens().get(operatorInd);
-        if (isExpressionOperator(operator)) {
-
-        }
-        AbstractExpression leftOperand = new ArgumentExpression(Integer.parseInt(parsedTokens.operandTokens().get(operatorInd)));
-        if (parentExpression!=null) {
-            leftOperand = parentExpression;
-        }
-
         // could be changed later
-        AbstractExpression rightOperand = new ArgumentExpression(Integer.parseInt(parsedTokens.operandTokens().get(operatorInd+1)));
+        AbstractExpression<Integer> leftOperand = new ArgumentIntegerExpression(Integer.parseInt(parsedTokens.operandTokens().get(operatorInd)));
+        AbstractExpression<Integer> rightOperand = new ArgumentIntegerExpression(Integer.parseInt(parsedTokens.operandTokens().get(operatorInd+1)));
+        if (parentExpression!=null) {
+            if (isExpressionOperator(operator)) {
+                // ??????
+                return createExpression(operator, parentExpression, rightOperand);
+            } else {
+                // use left operand as a right operand for parent
+                return leftOperand;
+            }
+//            leftOperand = parentExpression;
+        } else {
+            
+
+        }
+
         // last operator in expression. return last argument
         if (operatorInd==(parsedTokens.operatorTokens().size()-1))
         {
-            rightOperand = supportedOperatorCommandsFactories.get(operator).create(leftOperand, rightOperand);
+            rightOperand = createExpression(operator, leftOperand, rightOperand);
             return rightOperand;
         }
-        var mathExpression = supportedOperatorCommandsFactories.get(operator).create(leftOperand, rightOperand);
+        var mathExpression = createExpression(operator, leftOperand, rightOperand);
         operatorInd++;
-        createMathExpression(parsedTokens, mathExpression, operatorInd);
+        buildMathExpressionThree(parsedTokens, mathExpression, operatorInd);
+
+
+
+
+
+
+
+
+
+
+
+
+
+//        for (int operatorInd = 0; operatorInd < parsedTokens.operatorTokens().size(); operatorInd++) {
+//            var operator = parsedTokens.operatorTokens().get(operatorInd);
+//            var firstOperand = Integer.parseInt(parsedTokens.operandTokens().get(operatorInd));
+//            int secondOperand = Integer.parseInt(parsedTokens.operandTokens().get(operatorInd+1));
+//            if (multiplicationOperatorsList.contains(operator)){
+//                if (mathExpression == null) {
+//                    mathExpression = createExpression(operator, new ArgumentIntegerExpression(firstOperand), new ArgumentIntegerExpression(secondOperand));
+//                    continue;
+//                }
+//                mathExpression = createExpression(operator, mathExpression, new ArgumentIntegerExpression(secondOperand));
+//            } else {
+//
+//            }
+//
+//        }
         return mathExpression;
+    }
+
+    private AbstractMathExpression createExpression(String operator, AbstractExpression leftOperand, AbstractExpression rightOperand) {
+        return supportedOperatorCommandsFactories.get(operator).create(leftOperand, rightOperand);
     }
 
     private ParsedTokens parseTokens(String mathExpression) {
