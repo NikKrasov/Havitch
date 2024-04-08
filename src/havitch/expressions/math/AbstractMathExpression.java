@@ -2,7 +2,7 @@ package havitch.expressions.math;
 
 import havitch.expressions.AbstractExpression;
 
-public abstract class AbstractMathExpression extends AbstractExpression {
+public abstract class AbstractMathExpression extends AbstractExpression<Integer> {
 
 
     private final AbstractExpression firstOperand;

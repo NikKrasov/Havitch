@@ -8,7 +8,7 @@ public class SubtractionMathExpression extends AbstractMathExpression {
     }
 
     public int execute(){
-        return getFirstOperand()-getSecondOperand();
+        return getFirstOperand().execute()-getSecondOperand().execute();
     }
 
     @Override

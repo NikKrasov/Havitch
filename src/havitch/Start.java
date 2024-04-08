@@ -1,7 +1,6 @@
 package havitch;
-
 import havitch.expressions.math.factories.*;
-
+import net.objecthunter.exp4j.ExpressionBuilder;
 import java.util.Hashtable;
 import java.util.Scanner;
 public class Start {
@@ -23,11 +22,14 @@ public class Start {
         m.act();
     }
     public void  act(){
-        welcome();
-        username = getLineInfo();
-        education(username);
-        parseMathExpression(inputMathExpression());
+        // welcome();
+        // username = getLineInfo();
+        // 12education(username);
+        ExpressionBuilder expBuilder = new ExpressionBuilder(inputMathExpression());
 
+        var expression = expBuilder.build();
+        var expressionResult = expression.evaluate();
+        System.out.printf("Expression result: %s%n", expressionResult);
 
     }
 
@@ -55,9 +57,6 @@ public class Start {
         System.out.println("-Ok, now lets get started!");
         System.out.println("I have some commands you can use.");
         System.out.println("You can find all functions by using command (commands).");
-    }
-    public void commandsList(){
-        System.out.println("calc - this command would help you with counting.");
     }
     public void ageComparison(int age){
         if(age < 20){

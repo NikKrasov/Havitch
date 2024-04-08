@@ -63,34 +63,6 @@ public class MathExpressionParser {
         var mathExpression = supportedOperatorCommandsFactories.get(operator).create(leftOperand, rightOperand);
         operatorInd++;
         createMathExpression(parsedTokens, mathExpression, operatorInd);
-
-
-
-
-
-
-
-
-
-
-
-
-
-        for (int operatorInd = 0; operatorInd < parsedTokens.operatorTokens().size(); operatorInd++) {
-            var operator = parsedTokens.operatorTokens().get(operatorInd);
-            var firstOperand = Integer.parseInt(parsedTokens.operandTokens().get(operatorInd));
-            int secondOperand = Integer.parseInt(parsedTokens.operandTokens().get(operatorInd+1));
-            if (multiplicationOperatorsList.contains(operator)){
-                if (mathExpression == null) {
-                    mathExpression = supportedOperatorCommandsFactories.get(operator).create(new ArgumentExpression(firstOperand), new ArgumentExpression(secondOperand));
-                    continue;
-                }
-                mathExpression = supportedOperatorCommandsFactories.get(operator).create(mathExpression, new ArgumentExpression(secondOperand));
-            } else {
-
-            }
-
-        }
         return mathExpression;
     }
 

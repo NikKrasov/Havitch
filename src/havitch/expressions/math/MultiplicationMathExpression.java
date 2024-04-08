@@ -14,6 +14,6 @@ public class MultiplicationMathExpression extends AbstractMathExpression {
 
     @Override
     public int execute() {
-        return getFirstOperand() * getSecondOperand();
+        return getFirstOperand().execute() * getSecondOperand().execute();
     }
 }

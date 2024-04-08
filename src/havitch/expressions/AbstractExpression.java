@@ -1,5 +1,5 @@
 package havitch.expressions;
 
-public abstract class AbstractExpression {
-    public abstract int execute();
+public abstract class AbstractExpression<TExpression> {
+    public abstract TExpression execute();
 }
