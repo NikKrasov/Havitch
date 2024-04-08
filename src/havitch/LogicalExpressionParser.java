@@ -1,104 +1,96 @@
 package havitch;
 
 import havitch.expressions.AbstractExpression;
-import havitch.expressions.logical.AbstractLogicalExpression;
+import havitch.expressions.logical.AndExpression;
 import havitch.expressions.logical.ArgumentBooleanExpression;
-import havitch.expressions.logical.factories.*;
+import havitch.expressions.logical.OrExpression;
+import havitch.expressions.logical.factories.AbstractLogicalCommandFactory;
+import havitch.expressions.logical.factories.AndFactory;
+import havitch.expressions.logical.factories.OrFactory;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Hashtable;
-import java.util.List;
+import java.util.*;
 
 public class LogicalExpressionParser {
-    private final List<String> operatorsList = Arrays.asList("&", "|");
+
+    private static final String AND_OPERATOR = "&";
+    private static final String OR_OPERATOR = "|";
+    private final List<String> operatorsList = Arrays.asList(AND_OPERATOR, OR_OPERATOR);
     Hashtable<String, AbstractLogicalCommandFactory> supportedOperatorCommandsFactories = new Hashtable<>() {
         {
-            put("&", new AndFactory());
-            put("|", new OrFactory());
+            put(AND_OPERATOR, new AndFactory());
+            put(OR_OPERATOR, new OrFactory());
         }
     };
 
-
     public AbstractExpression<Boolean> parse(String stringLogicalExpression) {
         ParsedTokens parsedTokens = parseTokens(stringLogicalExpression);
-        // figure the sequence of operators.
-        // First "and"
-        // then "or"
         return buildExpressionThree(parsedTokens);
     }
 
     private AbstractExpression<Boolean> buildExpressionThree(ParsedTokens parsedTokens) {
-        return buildExpressionThree(parsedTokens, null, 0);
+        return normalizeExpression(parsedTokens, null, 0);
     }
 
     private boolean isOperator(String operator) {
         return operatorsList.contains(operator);
     }
 
-    private AbstractExpression<Boolean> buildExpressionThree(ParsedTokens parsedTokens, AbstractExpression<Boolean> parentExpression, int operatorInd) {
-
-        var operator = parsedTokens.operatorTokens().get(operatorInd);
-        // could be changed later
-        AbstractExpression<Boolean> leftOperand = new ArgumentBooleanExpression(Boolean.parseBoolean(parsedTokens.operandTokens().get(operatorInd)));
-        AbstractExpression<Boolean> rightOperand = new ArgumentBooleanExpression(Boolean.parseBoolean(parsedTokens.operandTokens().get(operatorInd+1)));
-        if (parentExpression!=null) {
-            if (isOperator(operator)) {
-                // ??????
-                return createExpression(operator, parentExpression, rightOperand);
-            } else {
-                // use left operand as a right operand for parent
-                return leftOperand;
+    private AbstractExpression<Boolean> normalizeExpression(ParsedTokens parsedTokens, AbstractExpression<Boolean> rightOperand, int operatorIndex) {
+        AbstractExpression<Boolean> firstOperand = rightOperand == null ? new ArgumentBooleanExpression(false) : rightOperand;
+        List<String> operatorTokens = parsedTokens.operatorTokens();
+        if (operatorIndex >= operatorTokens.size()) {
+            return new OrExpression(
+                    firstOperand,
+                    rightOperandByOperatorIndex(parsedTokens, operatorIndex - 1));
+        }
+        AbstractExpression<Boolean> secondOperand = null;
+        int i = operatorIndex;
+        String operator = operatorTokens.get(i);
+        while (operator.equals(AND_OPERATOR)) {
+            secondOperand = new AndExpression(
+                    secondOperand == null ? leftOperandByOperatorIndex(parsedTokens, i) : secondOperand,
+                    rightOperandByOperatorIndex(parsedTokens, i));
+            i++;
+            if (i >= operatorTokens.size()) {
+                break;
             }
-        } else {
-            
-
+            operator = operatorTokens.get(i);
         }
+        if (i < operatorTokens.size()) {
+            // get second operand by looking at next operator.
+            // In case next operator is AND, it will be returned as and expression from the recursion
+            secondOperand = normalizeExpression(
+                    parsedTokens,
+                    secondOperand == null ? leftOperandByOperatorIndex(parsedTokens, i) : secondOperand,
+                    i + 1);
+        };
+        firstOperand = new OrExpression(
+                firstOperand,
+                secondOperand);
 
-        // last operator in expression. return last argument
-        if (operatorInd==(parsedTokens.operatorTokens().size()-1))
-        {
-            rightOperand = createExpression(operator, leftOperand, rightOperand);
-            return rightOperand;
-        }
-        var mathExpression = createExpression(operator, leftOperand, rightOperand);
-        operatorInd++;
-        buildExpressionThree(parsedTokens, mathExpression, operatorInd);
-
-
-//        for (int operatorInd = 0; operatorInd < parsedTokens.operatorTokens().size(); operatorInd++) {
-//            var operator = parsedTokens.operatorTokens().get(operatorInd);
-//            var firstOperand = Integer.parseInt(parsedTokens.operandTokens().get(operatorInd));
-//            int secondOperand = Integer.parseInt(parsedTokens.operandTokens().get(operatorInd+1));
-//            if (multiplicationOperatorsList.contains(operator)){
-//                if (mathExpression == null) {
-//                    mathExpression = createExpression(operator, new ArgumentIntegerExpression(firstOperand), new ArgumentIntegerExpression(secondOperand));
-//                    continue;
-//                }
-//                mathExpression = createExpression(operator, mathExpression, new ArgumentIntegerExpression(secondOperand));
-//            } else {
-//
-//            }
-//
-//        }
-        return mathExpression;
+        return firstOperand;
     }
 
-    private AbstractLogicalExpression createExpression(String operator, AbstractExpression<Boolean> leftOperand, AbstractExpression<Boolean> rightOperand) {
-        return supportedOperatorCommandsFactories.get(operator).create(leftOperand, rightOperand);
+
+    private AbstractExpression<Boolean> leftOperandByOperatorIndex(ParsedTokens parsedTokens, int operatorIndex) {
+        return new ArgumentBooleanExpression(Boolean.parseBoolean(parsedTokens.operandTokens().get(operatorIndex)));
     }
 
-    private ParsedTokens parseTokens(String mathExpression) {
+    private AbstractExpression<Boolean> rightOperandByOperatorIndex(ParsedTokens parsedTokens, int operatorIndex) {
+        return new ArgumentBooleanExpression(Boolean.parseBoolean(parsedTokens.operandTokens().get(operatorIndex + 1)));
+    }
+
+    private ParsedTokens parseTokens(String logicalExpression) {
         String operandToken = "";
         List<String> operandTokens = new ArrayList<>();
         List<String> operatorTokens = new ArrayList<>();
         for (char tokenChar :
-                mathExpression.toCharArray()) {
+                logicalExpression.toCharArray()) {
             // ignore whitespaces
             if (Character.isWhitespace(tokenChar)) {
                 continue;
             }
-            var currentToken = new String(new char[tokenChar]);
+            var currentToken = String.valueOf(tokenChar);
             if (isOperator(currentToken)) {
                 operandTokens.add(operandToken);
                 operatorTokens.add(currentToken);
@@ -107,6 +99,7 @@ public class LogicalExpressionParser {
             }
             operandToken = operandToken + tokenChar;
         }
+        operandTokens.add(operandToken);
         return new ParsedTokens(operandTokens, operatorTokens);
     }
 
