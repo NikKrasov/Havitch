@@ -26,8 +26,9 @@ public class Start {
         welcome();
         username = getLineInfo();
         education(username);
-        parseMathExpression(inputMathExpression());
-
+        var result = new MathExpressionParser().parse(inputMathExpression()).execute();
+        System.out.println("Calculated result: ");
+        System.out.println(result);
 
     }
 
