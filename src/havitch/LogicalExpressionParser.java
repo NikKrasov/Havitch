@@ -28,14 +28,14 @@ public class LogicalExpressionParser {
     }
 
     private AbstractExpression<Boolean> buildExpressionThree(ParsedTokens parsedTokens) {
-        return normalizeExpression(parsedTokens, null, 0);
+        return buildExpressionThree(parsedTokens, null, 0);
     }
 
     private boolean isOperator(String operator) {
         return operatorsList.contains(operator);
     }
 
-    private AbstractExpression<Boolean> normalizeExpression(ParsedTokens parsedTokens, AbstractExpression<Boolean> rightOperand, int operatorIndex) {
+    private AbstractExpression<Boolean> buildExpressionThree(ParsedTokens parsedTokens, AbstractExpression<Boolean> rightOperand, int operatorIndex) {
         AbstractExpression<Boolean> firstOperand = rightOperand == null ? new ArgumentBooleanExpression(false) : rightOperand;
         List<String> operatorTokens = parsedTokens.operatorTokens();
         if (operatorIndex >= operatorTokens.size()) {
@@ -59,7 +59,7 @@ public class LogicalExpressionParser {
         if (i < operatorTokens.size()) {
             // get second operand by looking at next operator.
             // In case next operator is AND, it will be returned as and expression from the recursion
-            secondOperand = normalizeExpression(
+            secondOperand = buildExpressionThree(
                     parsedTokens,
                     secondOperand == null ? leftOperandByOperatorIndex(parsedTokens, i) : secondOperand,
                     i + 1);
