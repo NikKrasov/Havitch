@@ -1,9 +1,10 @@
 package havitch;
 
+import havitch.expressions.AbstractExpression;
 import havitch.expressions.math.factories.*;
+import java.util.List;
+import java.util.*;
 
-import java.util.Hashtable;
-import java.util.Scanner;
 public class Start {
     public Start(){
     }
@@ -20,18 +21,106 @@ public class Start {
     };
     public static void main(String[] args) {
         Start m = new Start();
-        m.act();
+        var logicalExpressionEnteredByUser = m.getLineInfo();
+        m.act(logicalExpressionEnteredByUser);
     }
-    public void  act(){
-        welcome();
-        username = getLineInfo();
-        education(username);
-        var result = new MathExpressionParser().parse(inputMathExpression()).execute();
-        System.out.println("Calculated result: ");
-        System.out.println(result);
+    public void  act(String expressionEnteredByUser){
+//        welcome();
+//        username = getLineInfo();
+//        education(username);
+//        var result = new MathExpressionParser().parse(inputMathExpression()).execute();
+//        System.out.println("Calculated result: ");
+//        System.out.println(result);
+        var parsedVariableTokens = new LogicalExpressionParser().parseStringExpression(expressionEnteredByUser);
+        var operandValues = new TruthTable().makeTable(parsedVariableTokens);
+        var calculatedTruthTable = calculateTruthTable(parsedVariableTokens, operandValues);
+        printTable(calculatedTruthTable);
+    }
+
+    private void printTable(String[][] table) {
+        for (String[] row :
+                table) {
+            System.out.print(" ");
+            for (String cell :
+                    row) {
+                System.out.print(cell + " | ");
+            }
+            printRowDelimeter(row.length);
+
+        }
 
     }
 
+    private static void printRowDelimeter(int columnsCount) {
+        System.out.println(" ");
+
+        for (int i =0; i<columnsCount; i++) {
+            System.out.print("---|");
+        }
+        System.out.println();
+    }
+
+    private String[][] calculateTruthTable(ParsedTokens parsedVariableTokens, String[][] operandValues) {
+        HashMap<String,String> nameAndValue = new HashMap<String,String>();
+        var calculatedTruthTable = new String[operandValues.length][operandValues[0].length+1];
+        calculatedTruthTable[0] = createHeader(operandValues[0]);
+
+        for (int row = 1; row < operandValues.length; row++) {
+            List<String> parsedVariableValues = new ArrayList<String>();
+            String[] rowWithOperandValues = operandValues[row];
+            int column = 0;
+            while (column < rowWithOperandValues.length) {
+                nameAndValue.put(operandValues[0][column], operandValues[row][column]);
+                column = column + 1;
+            }
+            List<String> operandTokens = parsedVariableTokens.operandTokens();
+            for (int i = 0; i < operandTokens.size(); i++) {
+                String variableName = operandTokens.get(i);
+                String variableValue = nameAndValue.get(variableName);
+                parsedVariableValues.add(variableValue);
+                calculatedTruthTable[row][i] = convertSgToInt(variableValue) == 1 ? "1" : "0";
+            }
+            var valueTokens = new ParsedTokens(parsedVariableValues, parsedVariableTokens.operatorTokens());
+            AbstractExpression<Boolean> expression = new LogicalExpressionBuilder().build(valueTokens);
+            var logicalExpressionResult = expression.execute();
+            calculatedTruthTable[row][column] = logicalExpressionResult ? "1" : "0";
+        }
+        return calculatedTruthTable;
+    }
+
+    private static String[] createHeader(String[] variableNames) {
+        var header = new String[variableNames.length+1];
+        for (int i = 0; i < variableNames.length; i++) {
+            String variableName = variableNames[i];
+            header[i] = variableName;
+        }
+        header[variableNames.length] = "F";
+        return header;
+    }
+
+    public int convertBlToInt(boolean value){
+        if(value){
+            return 1;
+        }
+        return 0;
+    }
+    public int convertSgToInt(String value){
+        if(value == "true"){
+            return 1;
+        }
+        return 0;
+    }
+
+    public  int pow(int value,int powValue){
+        if(powValue == 0){
+            return 1;
+        }
+        if (powValue == 1) {
+            return value;
+        } else {
+            return value * pow(value, powValue - 1);
+        }
+    }
     public void welcome(){
         System.out.println("-Hello, my name is Havitch.");
         System.out.println("-I want to learn how to do many things, so please, can you teach me and I would be useful!");
@@ -74,6 +163,7 @@ public class Start {
             wrongTalk();
         }
     }
+
     public String youngTalk(){
         System.out.println("-You are young, well what are you going to do in your life?");
         return getLineInfo();
